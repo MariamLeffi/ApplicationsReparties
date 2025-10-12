@@ -1,22 +1,42 @@
 package clientPackage;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Client {
-
     public static void main(String[] args) {
         try {
-            // La première étape :
             System.out.println("Je suis un client pas encore connecté…");
 
-            // Connexion au serveur (adresse locale + port 5000)
-            Socket socket = new Socket("192.168.56.1", 5000);
-
-            // La deuxième étape :
+            Socket socket = new Socket("127.0.0.1", 5050);
             System.out.println("Je suis un client connecté !");
 
-            // La dernière étape : Fermer le socket
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            Scanner sc = new Scanner(System.in);
+
+            int nb;
+            do {
+                System.out.print("Entrez un entier (0 pour quitter) : ");
+                nb = sc.nextInt();
+
+                dos.writeInt(nb);
+                dos.flush();
+
+                if (nb != 0) {
+                    int resultat = dis.readInt();
+                    System.out.println("Résultat reçu du serveur : " + resultat);
+                } else {
+                    System.out.println("Fin de la communication demandée.");
+                }
+
+            } while (nb != 0);
+
+            // fermeture propre
+            sc.close();
+            dis.close();
+            dos.close();
             socket.close();
             System.out.println("Connexion fermée.");
 
