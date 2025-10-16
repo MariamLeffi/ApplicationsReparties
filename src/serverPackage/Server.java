@@ -1,45 +1,64 @@
 package serverPackage;
-
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-
+import java.net.*;
 public class Server {
     public static void main(String[] args) {
         try {
-            ServerSocket serverSocket = new ServerSocket(5050);
-            System.out.println("Serveur prêt sur le port 5050. En attente d’un client...");
+            InetAddress adresseLocale = InetAddress.getLocalHost();
+            int port = 5050;
+
+            System.out.println("Adresse IP du serveur : " + adresseLocale.getHostAddress());
+            System.out.println("Serveur prêt sur le port " + port);
+
+            ServerSocket serverSocket = new ServerSocket();
+            serverSocket.bind(new InetSocketAddress(adresseLocale, port));
 
             Socket clientSocket = serverSocket.accept();
-            System.out.println("Un client est connecté !");
+            System.out.println("Client connecté !");
 
             DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
             DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
 
             while (true) {
-                int nb = dis.readInt(); // lire un entier envoyé par le client
-                System.out.println("Serveur a reçu : " + nb);
-
-                // condition d'arrêt
-                if (nb == 0) {
-                    System.out.println("Le client a envoyé 0 → fin de communication.");
+                String operation = dis.readUTF();
+                if (operation.equalsIgnoreCase("exit")) {
+                    System.out.println("Fin de la communication.");
                     break;
                 }
+                double a = dis.readDouble();
+                double b = dis.readDouble();
+                double resultat = 0;
 
-                int resultat = nb * 5;
-                System.out.println("Calcul : " + nb + " * 5 = " + resultat);
-
-                dos.writeInt(resultat);
+                switch (operation) {
+                    case "+":
+                        resultat = a + b;
+                        break;
+                    case "-":
+                        resultat = a - b;
+                        break;
+                    case "*":
+                        resultat = a * b;
+                        break;
+                    case "/":
+                        if (b == 0) {
+                            dos.writeUTF("Erreur : Division par zéro !");
+                            continue;
+                        }
+                        resultat = a / b;
+                        break;
+                    default:
+                        dos.writeUTF("Opération inconnue !");
+                        continue;
+                }
+                dos.writeUTF("Résultat : " + resultat);
                 dos.flush();
-                System.out.println("Résultat envoyé au client : " + resultat);
             }
 
-            // fermeture propre
             dis.close();
             dos.close();
             clientSocket.close();
             serverSocket.close();
-            System.out.println("Connexion fermée. Serveur arrêté.");
+            System.out.println("Serveur arrêté.");
 
         } catch (IOException e) {
             e.printStackTrace();

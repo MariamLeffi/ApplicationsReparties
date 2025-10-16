@@ -1,39 +1,59 @@
 package clientPackage;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
-
 public class Client {
     public static void main(String[] args) {
         try {
-            System.out.println("Je suis un client pas encore connecté…");
+            Scanner sc = new Scanner(System.in);
 
-            Socket socket = new Socket("127.0.0.1", 5050);
-            System.out.println("Je suis un client connecté !");
+            System.out.print("Entrez l’adresse IP du serveur : ");
+            String ipServeur = sc.nextLine();
+
+            Socket socket = new Socket(ipServeur, 5050);
+            System.out.println("Connecté au serveur " + ipServeur);
 
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             DataInputStream dis = new DataInputStream(socket.getInputStream());
-            Scanner sc = new Scanner(System.in);
 
-            int nb;
-            do {
-                System.out.print("Entrez un entier (0 pour quitter) : ");
-                nb = sc.nextInt();
+            while (true) {
+                System.out.println("\n=== MENU CALCULATRICE ===");
+                System.out.println("1. Addition (+)");
+                System.out.println("2. Soustraction (-)");
+                System.out.println("3. Multiplication (*)");
+                System.out.println("4. Division (/)");
+                System.out.println("0. Quitter");
+                System.out.print("Votre choix : ");
 
-                dos.writeInt(nb);
-                dos.flush();
-
-                if (nb != 0) {
-                    int resultat = dis.readInt();
-                    System.out.println("Résultat reçu du serveur : " + resultat);
-                } else {
-                    System.out.println("Fin de la communication demandée.");
+                int choix = sc.nextInt();
+                if (choix == 0) {
+                    dos.writeUTF("exit");
+                    break;
                 }
 
-            } while (nb != 0);
+                String op = switch (choix) {
+                    case 1 -> "+";
+                    case 2 -> "-";
+                    case 3 -> "*";
+                    case 4 -> "/";
+                    default -> "?";
+                };
 
-            // fermeture propre
+                dos.writeUTF(op);
+
+                System.out.print("Entrez le premier nombre : ");
+                double a = sc.nextDouble();
+                System.out.print("Entrez le deuxième nombre : ");
+                double b = sc.nextDouble();
+
+                dos.writeDouble(a);
+                dos.writeDouble(b);
+                dos.flush();
+
+                String resultat = dis.readUTF();
+                System.out.println(resultat);
+            }
+
             sc.close();
             dis.close();
             dos.close();
