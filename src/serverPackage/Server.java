@@ -2,6 +2,7 @@ package serverPackage;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import PackageCommun.Operation;
 
 public class Server {
     public static void main(String[] args) {
@@ -12,63 +13,44 @@ public class Server {
             Socket clientSocket = serverSocket.accept();
             System.out.println("Un client est connecté !");
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
+            ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+            ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
-            String op = br.readLine();
-            System.out.println("Opération reçue du client : " + op);
+            Object obj = ois.readObject();
 
-            op = op.replaceAll("\\s+", "");
+            if (obj instanceof Operation) {
+                Operation op = (Operation) obj;
 
-            double a = 0, b = 0;
-            char operateur = ' ';
-            int i = 0;
-            StringBuilder nb1 = new StringBuilder();
-            StringBuilder nb2 = new StringBuilder();
-
-            while (i < op.length() && (Character.isDigit(op.charAt(i)) || op.charAt(i) == '.')) {
-                nb1.append(op.charAt(i));
-                i++;
-            }
-            if (i < op.length()) {
-                operateur = op.charAt(i);
-                i++;
-            }
-            while (i < op.length() && (Character.isDigit(op.charAt(i)) || op.charAt(i) == '.')) {
-                nb2.append(op.charAt(i));
-                i++;
-            }
-            if (nb1.length() == 0 || nb2.length() == 0) {
-                pw.println("Erreur : opération invalide !");
-            } else {
-                a = Integer.parseInt(nb1.toString());
-                b = Integer.parseInt(nb2.toString());
-                double res = 0;
-                switch (operateur) {
-                    case '+':
-                        res = a + b;
-                        break;
-                    case '-':
-                        res = a - b;
-                        break;
-                    case '*':
-                        res = a * b;
-                        break;
+                double resultat = 0;
+                switch (op.getOperateur()) {
+                    case '+': resultat = op.getOp1() + op.getOp2(); break;
+                    case '-': resultat = op.getOp1() - op.getOp2(); break;
+                    case '*': resultat = op.getOp1() * op.getOp2(); break;
                     case '/':
-                        res = a / b;
+                        if (op.getOp2() == 0) {
+                            System.out.println("Erreur : division par zéro !");
+                        } else {
+                            resultat = op.getOp1() / op.getOp2();
+                        }
+                        break;
+                    default:
+                        System.out.println("Opérateur invalide !");
                 }
-            pw.println("Résultat = " + res);
-            System.out.println("Résultat envoyé au client : " + res);   
-            }
 
-            br.close();
-            pw.close();
+                System.out.println("Calcul reçu : " + op.getOp1() + " " + op.getOperateur() + " " + op.getOp2() + " = " + resultat);
+
+                // renvoyer le résultat
+                oos.writeDouble(resultat);
+                oos.flush();
+            }
+            
+         // fermeture 
+            ois.close();
+            oos.close();
             clientSocket.close();
             serverSocket.close();
             System.out.println("Connexion fermée. Serveur arrêté.");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) {}
+        catch (ClassNotFoundException e) {}
     }
 }
