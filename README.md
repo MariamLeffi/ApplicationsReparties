@@ -1,1 +1,4 @@
-"# TP3" 
+Activité 3.1
+=> Le serveur écoute sur le port 5050 et, à chaque connexion, incrémente un compteur pour attribuer un numéro d’ordre au client et afficher son adresse IP. Pour chaque client, il crée un thread ClientProcess qui envoie le numéro d’ordre au client, lit ses messages et ferme la connexion. Le client se connecte, reçoit son numéro, envoie une réponse, puis se déconnecte. Chaque fois qu’un nouveau client est lancé, le serveur crée un thread indépendant, permettant à plusieurs clients de communiquer simultanément sans se bloquer, illustrant ainsi le fonctionnement du multi-threading.
+Activité 3.2
+=>Le programme est une calculatrice client/serveur multi-thread. Le serveur écoute les connexions, affiche les informations du client et crée un thread pour chaque client. Chaque thread lit l’opération envoyée par le client, calcule le résultat, l’affiche côté serveur et le renvoie au client. Du côté client, l’utilisateur saisit les opérandes et l’opérateur, envoie l’opération au serveur, reçoit le résultat et l’affiche. Plusieurs clients peuvent ainsi interagir simultanément avec le serveur.
