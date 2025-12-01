@@ -1,66 +1,54 @@
 package rmiClient;
 
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.util.Scanner;
 import rmiService.IBanque;
-import metier.Compte;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import java.util.Scanner;
 
 public class BanqueClient {
-
     public static void main(String[] args) {
         try {
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
-            IBanque stub = (IBanque) registry.lookup("BanqueService");
-
-            Scanner sc = new Scanner(System.in);
+            // 1. Lookup via JNDI
+            Context ctx = new InitialContext();
+            IBanque stub = (IBanque) ctx.lookup("BanqueService");
 
             System.out.println("Connecté au service BanqueService.");
 
-            while (true) {
+            Scanner sc = new Scanner(System.in);
 
+            while(true) {
                 System.out.println("1 - Créer un compte");
                 System.out.println("2 - Consulter un compte");
                 System.out.println("0 - Quitter");
                 System.out.print("Choix: ");
 
-                String choix = sc.nextLine();   // TOUJOURS nextLine()
+                int ch = Integer.parseInt(sc.nextLine());
 
-                switch (choix) {
-                    case "1":
-                        System.out.print("Code (int): ");
-                        int code = Integer.parseInt(sc.nextLine());
+                if(ch == 1) {
+                    System.out.print("Code: ");
+                    int code = Integer.parseInt(sc.nextLine());
 
-                        System.out.print("Solde initial (double): ");
-                        double solde = Double.parseDouble(sc.nextLine());
+                    System.out.print("Solde initial: ");
+                    double solde = Double.parseDouble(sc.nextLine());
 
-                        Compte c = new Compte(code, solde);
-                        String res = stub.creerCompte(c);
-                        System.out.println(res);
-                        break;
+                    metier.Compte c = new metier.Compte(code, solde);
 
-                    case "2":
-                        System.out.print("Code (int): ");
-                        int code2 = Integer.parseInt(sc.nextLine());
-
-                        String info = stub.getInfoCompte(code2);
-                        System.out.println(info);
-                        break;
-
-                    case "0":
-                        System.out.println("Au revoir !");
-                        return;
-
-                    default:
-                        System.out.println("Choix invalide !");
+                    System.out.println(stub.creerCompte(c));
                 }
+                else if(ch == 2) {
+                    System.out.print("Code du compte: ");
+                    int code = Integer.parseInt(sc.nextLine());
 
-                System.out.println();
+                    System.out.println(stub.getInfoCompte(code));
+                }
+                else if(ch == 0) {
+                    System.out.println("Au revoir.");
+                    break;
+                }
             }
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             System.out.println("Erreur client : " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }
